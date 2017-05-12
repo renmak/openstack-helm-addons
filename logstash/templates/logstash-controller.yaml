@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: logstash
+  namespace: default
+  labels:
+    component: elk
+    role: logstash
+spec:
+  replicas: 1
+  selector:
+    component: elk
+    role: logstash
+  template:
+    metadata:
+      labels:
+        component: elk
+        role: logstash
+    spec:
+      serviceAccount: elk
+      containers:
+      - name: logstash
+        image: pires/logstash
+        env:
+        - name: KUBERNETES_TRUST_CERT
+          value: "true"
+        ports:
+        - containerPort: 5044
+          name: http
+          protocol: TCP
+        volumeMounts:
+        # - mountPath: /logstash/certs
+        #   name: logstash-cert
+        - mountPath: /logstash/config
+          name: logstash-conf
+      volumes:
+      # - secret:
+      #     secretName: logstash-ssl
+      #   name: logstash-cert
+      - secret:
+          secretName: logstash.conf
+        name: logstash-conf
+      - emptyDir:
+          medium: ""
+        name: "storage"
